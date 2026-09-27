@@ -1,0 +1,27 @@
+{
+  "kind": "univ4_hook",
+  "hook": {
+    "contract": "MaxTxHook",
+    "constructorArgs": [
+      "0xE03A1074c86CFeDd5C142C4F04F1a1536e203543"
+    ],
+    "permissions": [
+      "afterInitialize",
+      "beforeSwap",
+      "afterSwap"
+    ]
+  },
+  "token": {
+    "contract": "MAXT",
+    "name": "Maxtx",
+    "symbol": "MAXT",
+    "decimals": 18
+  },
+  "pool": {
+    "pairedCurrency": "0x0000000000000000000000000000000000000000",
+    "fee": 3000,
+    "tickSpacing": 60,
+    "initialPrice": "792281625142643375935439503360000"
+  },
+  "notes": "MaxTxHook (src/MaxTxHook.sol) takes only the Sepolia PoolManager address; MAXT (src/MAXT.sol) has a zero-argument constructor. ABIs are in docs/abi/MaxTxHook.json and docs/abi/MAXT.json. The intended pool has native ETH as currency0 and MAXT as currency1. initialPrice is decimal sqrtPriceX96, matching test/helpers/LaunchParameters.sol: 100,000,000 MAXT per ETH with 18 decimals for both currencies. The local factory rehearsal initializes at this price, seeds one-sided MAXT liquidity, and executes the first buy into the ETH-less pool. The three enabled permissions encode address bits 0x10c0 under mask 0x3fff; all other permissions, including return-delta permissions, are false. The constructor validates these bits. Every callback requires the configured PoolManager. Native-ETH pool initialization starts a 7,200-block window keyed by PoolId. While block.number < endBlock, beforeSwap rejects exact-output buys requesting more than 5,000,000 MAXT and afterSwap rejects buys whose absolute delta.amount1 exceeds that cap. Exactly CAP is allowed; sells and buys at or after endBlock are uncapped. Non-native-ETH pools are unaffected. The cap is per swap: multiple swaps, even in one transaction, can exceed it in aggregate. The hook adds no fee, handles no funds, and has no admin. This manifest describes the implementation; launch policy, signed artifact linkage, admission and deployment belong to services."
+}
