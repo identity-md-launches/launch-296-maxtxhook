@@ -1,0 +1,30 @@
+[
+  {
+    "name": "v4-core",
+    "repository": "https://github.com/Uniswap/v4-core",
+    "ref": "main",
+    "commit": "46c6834698c48bc4a463a86d8420f4eb1d7f3b75",
+    "vendored": "src, test/utils/CurrencySettler.sol, test/utils/LiquidityAmounts.sol, licenses"
+  },
+  {
+    "name": "forge-std",
+    "repository": "https://github.com/foundry-rs/forge-std",
+    "ref": "v1.9.7",
+    "commit": "77041d2ce690e692d6e03cc812b57d1ddaa4d505",
+    "vendored": "src or contracts and licenses"
+  },
+  {
+    "name": "openzeppelin-contracts",
+    "repository": "https://github.com/OpenZeppelin/openzeppelin-contracts",
+    "ref": "v5.1.0",
+    "commit": "69c8def5f222ff96f2b5beff05dfba996368aa79",
+    "vendored": "src or contracts and licenses"
+  },
+  {
+    "name": "solmate",
+    "repository": "https://github.com/transmissions11/solmate",
+    "ref": "v4-core submodule pin",
+    "commit": "4b47a19038b798b4a33d9749d25e570443520647",
+    "vendored": "src or contracts and licenses"
+  }
+]

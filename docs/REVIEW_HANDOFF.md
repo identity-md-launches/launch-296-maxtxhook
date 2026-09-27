@@ -1,0 +1,19 @@
+# Independent review handoff
+
+This document maps implementation evidence to adversarial scenarios. It is authored with the implementation and is not an independent review. The separate review role inspects accepted source and the final manifest without editing either, and reports each finding with its exact triggering call sequence. Final manifest values, live factory code, signed artifacts and RPC state are not present in this assignment.
+
+| Attack / question | Reproducible local sequence and expected result |
+| --- | --- |
+| End-block off-by-one | Factory launch at B; roll to B+7199; exact-output CAP+1 and exact-input delivering CAP+1 revert. Roll to B+7200; both succeed. `test_endBlockMinusOneChecksBothBuyModes`, `test_atEndBlockBothBuyModesUncapped`. |
+| Wrong output or LP-fee treatment | Launch; swap exact input with a price limit yielding exactly CAP; succeeds with CAP delivered. Repeat from the initial state with limit yielding CAP+1; reverts afterSwap. Repeat with protocol fee enabled. `test_exactInBuyDeliveringExactlyCapPassesIncludingLPFee`, `test_exactInBuyDeliveringCapPlusOneRevertsAndRollsBack`, `test_protocolAndLPFeesDoNotChangeWhichOutputIsCapped`. |
+| Exact-output / claim bypass | Active-window exact output CAP+1 reverts beforeSwap, including a limit that would reduce the fill and a claim-payout router setting. `test_exactOutRequestOverCapRejectedEvenIfPriceLimitWouldPartiallyFill`, `test_claimOutputCannotBypassCap`. |
+| Arbitrary exact-input size | Execute after expiry to observe uncapped real-pool output; restore snapshot; replay while active. Every output above CAP must revert with its actual output as the error argument. `testFuzz_exactInActualOutputMatchesUncappedExecution`. |
+| Factory initialize blocked | Mine the hook; factory deploys token, initializes native-ETH pool at the declared rehearsal price, adds only MAXT, settles, then makes first buy with no prior ETH. `test_launchRehearsalFactoryInitializeOneSidedSeedFirstBuy`. Also initialize from arbitrary sender at fuzzed valid price/fee. |
+| Delta or settlement theft | Omit settlement after an otherwise valid swap; manager reverts `CurrencyNotSettled`. Revoke token allowance before sell; token rejects settlement. Pool price and balances roll back. `test_unsettledSwapRevertsAndRollsBack`, `test_missingSellAllowanceRevertsAndRollsBack`. |
+| Callback spoofing / window reset | Call each enabled callback directly; all revert. Reinitialize the same real pool at B+1; core refuses, preserving the original deadline. |
+| Pool isolation | Initialize a second ETH pool at B+100; first expires at B+7200, second at B+7300. Initialize an ERC-20/ERC-20 pool; no hook event/window and all four swap modes allow output above CAP. |
+| Signed-delta edge case | Manager-origin unit callback with amount1=`int128.min` must produce `CapExceeded(CAP,2^127)`, not a negation panic. |
+
+Expected limits are deliberate: four exact-output buys of CAP in one transaction deliver 4×CAP; sells of more than CAP are allowed. Permissionless alternate pools, transfers, LP activity, and initialization timing are outside this per-swap mitigation. New native-ETH pools on this hook also receive a 7200-block window using the same raw-unit constant, regardless of their currency1 token's decimals. Reviewers should distinguish these approved limits from a single-buy bypass in the intended pool.
+
+Before deployment, reconcile the final manifest's constructor bytes, chain, manager, flags, source/compiler artifact, initial price, seed range/allocation, remainder recipient and LP position policy with the reviewed source and rehearsal. Policy authorization and signed artifact linkage belong to services; concrete source, constructor, policy or authorization conflicts remain review findings. Live network/factory and external dependency-code checks are a later service responsibility, not assertions made by these offline tests.
